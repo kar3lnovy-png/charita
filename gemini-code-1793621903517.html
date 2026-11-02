@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charitativní sbírka</title>
+    <!-- Knihovna pro lokální generování QR kódu -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; }
+        .donate-btn {
+            background-color: #e63946; color: white; border: none;
+            padding: 15px 30px; font-size: 20px; border-radius: 8px;
+            cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .donate-btn:hover { background-color: #d62828; }
+        #qr-container { margin-top: 30px; display: none; justify-content: center; flex-direction: column; align-items: center; }
+        #qr-code { margin: 20px; padding: 15px; background: white; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Podpořte naši charitu</h1>
+    <button class="donate-btn" id="donateBtn">Darovat 400 Kč</button>
+
+    <div id="qr-container">
+        <p>Pro platbu naskenujte tento QR kód ve své bankovní aplikaci:</p>
+        <div id="qr-code"></div>
+    </div>
+
+    <script>
+        // Parametry platby
+        const amount = "400.00";
+        const iban = "CZ0000000000000000000000"; // Nahraďte reálným IBANem
+        const message = "Charitativni dar";
+        
+        // Generování standardního českého SPAYD řetězce (QR Platba)
+        const spaydString = `SPD*1.0*ACC:${iban}*AM:${amount}*CC:CZK*MSG:${message}`;
+
+        document.getElementById('donateBtn').addEventListener('click', function() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (isMobile) {
+                // Mobilní zařízení: Pokus o otevření bankovní aplikace přes Intent / Universal Link
+                // Ukázka konstrukce intentu pro Android aplikaci podporující formát SPAYD
+                const intentUrl = `intent://qrplatba?qr=${encodeURIComponent(spaydString)}#Intent;scheme=cz.bankovni.aplikace;package=cz.banka.app;end;`;
+                
+                // Fallback pro mobil, pokud aplikace intent nezachytí (např. iOS nebo chybějící podpora)
+                // V praxi se zde často otevírá rozcestník (platební brána) nebo se stáhne obrázek QR kódu
+                window.location.href = intentUrl;
+            } else {
+                // Desktopové zařízení: Zobrazení QR kódu
+                const qrContainer = document.getElementById('qr-container');
+                const qrCodeDiv = document.getElementById('qr-code');
+                
+                if (qrCodeDiv.innerHTML === "") {
+                    new QRCode(qrCodeDiv, {
+                        text: spaydString,
+                        width: 256,
+                        height: 256,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.M
+                    });
+                }
+                qrContainer.style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>
